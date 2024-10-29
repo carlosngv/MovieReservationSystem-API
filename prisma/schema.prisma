@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model movie {
+  movie_id                                   Int               @id @default(autoincrement())
+  movie_name                                 String            @db.VarChar(75)
+  movie_description                          String?           @db.VarChar(255)
+  movie_picture                              String?           @db.VarChar(255)
+  release_date                               DateTime          @db.DateTime(0)
+  movie_genre                                Int
+  movie_genre_movie_movie_genreTomovie_genre movie_genre       @relation("movie_movie_genreTomovie_genre", fields: [movie_genre], references: [movie_genre_id], onDelete: NoAction, onUpdate: NoAction, map: "genre_fk")
+  scheduled_movie                            scheduled_movie[]
+
+  @@index([movie_genre], map: "genre_fk_idx")
+}
+
+model movie_genre {
+  movie_genre_id                       Int     @id @default(autoincrement())
+  genre_name                           String  @db.VarChar(45)
+  movie_movie_movie_genreTomovie_genre movie[] @relation("movie_movie_genreTomovie_genre")
+}
+
+model movie_reservation {
+  movie_reservation_id Int             @id @default(autoincrement())
+  scheduled_movie_id   Int
+  ticket_id            Int
+  reserved_at          DateTime        @default(now()) @db.DateTime(0)
+  user_id              Int
+  seat                 String          @db.VarChar(45)
+  user                 user            @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "reservation_user_fk")
+  scheduled_movie      scheduled_movie @relation(fields: [scheduled_movie_id], references: [scheduled_movie_id], onDelete: NoAction, onUpdate: NoAction, map: "scheduled_movie_fk")
+
+  @@index([scheduled_movie_id], map: "movie_room_fk_idx")
+  @@index([user_id], map: "user_fk_idx")
+}
+
+model role {
+  role_id    Int          @id @default(autoincrement())
+  role_name  String       @db.VarChar(45)
+  user_roles user_roles[]
+}
+
+model scheduled_movie {
+  scheduled_movie_id Int                 @id @default(autoincrement())
+  capacity           Int
+  start_date         DateTime            @db.DateTime(0)
+  end_date           DateTime            @db.DateTime(0)
+  movie_id           Int
+  movie_reservation  movie_reservation[]
+  movie              movie               @relation(fields: [movie_id], references: [movie_id], onDelete: NoAction, onUpdate: NoAction, map: "movie_fk")
+
+  @@index([movie_id], map: "movie_fk_idx")
+}
+
+model user {
+  user_id           Int                 @id @unique(map: "user_id_UNIQUE") @default(autoincrement())
+  username          String              @unique(map: "username_UNIQUE") @db.VarChar(45)
+  email             String              @unique(map: "email_UNIQUE") @db.VarChar(50)
+  password          String              @db.VarChar(45)
+  first_name        String              @db.VarChar(45)
+  last_name         String              @db.VarChar(45)
+  profile_picture   String?             @db.VarChar(255)
+  is_verified       Int                 @db.TinyInt
+  movie_reservation movie_reservation[]
+  user_roles        user_roles[]
+}
+
+model user_roles {
+  user_roles_id Int  @id @default(autoincrement())
+  user_id       Int
+  role_id       Int
+  role          role @relation(fields: [role_id], references: [role_id], onDelete: NoAction, onUpdate: NoAction, map: "role_fk")
+  user          user @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "user_fk")
+
+  @@index([role_id], map: "role_fk_idx")
+  @@index([user_id], map: "user_fk_idx")
+}
