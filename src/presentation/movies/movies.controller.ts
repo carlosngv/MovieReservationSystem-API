@@ -5,6 +5,7 @@ import { CreateMovieDTO } from "../../domain/dtos/movies/create-movie.dto";
 import { APIResponse } from "../interfaces/api-response.interface";
 import { MovieEntity } from "../../domain/entities/movie.entity";
 import { UpdateMovieDTO } from "../../domain/dtos/movies/update-movie.dto";
+import Logger from "../../config/logger.config";
 
 export class MoviesController {
 
@@ -18,7 +19,9 @@ export class MoviesController {
             success: false,
         }
         if( error instanceof CustomError ) {
+            Logger.error( JSON.stringify( response ) );
             res.status( error.statusCode ).json( response );
+            return
         }
 
         res.status(500).json( response );
@@ -34,6 +37,7 @@ export class MoviesController {
                     error: null,
                     success: true,
                 }
+                Logger.info(`Movie with ID ${ id } fetched.`);
                 res.status(200).json( response );
             })
             .catch( error => this.handleError( res, error ));
@@ -49,7 +53,7 @@ export class MoviesController {
                     error: null,
                     success: true,
                 }
-
+                Logger.info('Movies fetched.');
                 res.status(200).json( response );
             })
             .catch( error =>  this.handleError( res, error ) );
@@ -88,6 +92,7 @@ export class MoviesController {
                     error: null,
                     success: true,
                 }
+                Logger.info(`Movie created - ${ JSON.stringify( createdMovie ) }`);
                 res.status(201).json( response )
             } )
             .catch( error =>  this.handleError( res, error ) );
@@ -111,6 +116,7 @@ export class MoviesController {
                     error: null,
                     success: true,
                 }
+                Logger.info(`Movie with ID ${ id } updated.`);
                 res.status(201).json( response );
 
             })
@@ -127,6 +133,7 @@ export class MoviesController {
                     error: null,
                     success: true,
                 }
+                Logger.info(`Movie with ID ${ id } deleted.`);
                 res.status(200).json( response );
             })
             .catch( error => this.handleError( res, error ));
