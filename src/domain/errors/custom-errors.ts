@@ -10,8 +10,9 @@ export class CustomError extends Error {
         return new CustomError( 400, message );
     }
 
-    static internalError() {
-        return new CustomError( 500, 'Interval server error.' );
+    static internalError( message?: string ) {
+        if( !message ) message = 'Interval server error.';
+        return new CustomError( 500, message );
     }
 
     static unauthorized( message: string ) {

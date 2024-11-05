@@ -4,9 +4,7 @@ import { Routes } from "./presentation/routes";
 import { Server } from "./presentation/server";
 
 
-const main = async () => {
-    const token = await JWTAdapter.signToken({ id: 'ABC', username: 'carlosngv'})
-    console.log(token)
+const main = () => {
 
     const server = new Server({
         port: envs.PORT,
@@ -14,10 +12,8 @@ const main = async () => {
     });
 
     server.start();
-
-
 }
 
-( async () => {
-    await main();
+( () => {
+    main();
 })();
