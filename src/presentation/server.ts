@@ -5,6 +5,9 @@ import { NextFunction, Request, Response } from "express"
 import { CustomError } from "../domain/errors/custom-errors";
 import { APIResponse } from "./interfaces/api-response.interface";
 
+import swaggerUI from 'swagger-ui-express';
+import { specs }  from '../swagger/swagger';
+
 interface Options {
     port: number;
     routes: Router;
@@ -26,6 +29,9 @@ export class Server {
         // ? Middlewares
         this.app.use( express.json() );
         this.app.use( compression() );
+
+        // ? Swagger middleware
+        this.app.use( '/api-docs', swaggerUI.serve, swaggerUI.setup( specs ) );
 
         // ? Routes
         this.app.use('/api', this.routes);
