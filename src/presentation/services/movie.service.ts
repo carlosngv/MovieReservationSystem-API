@@ -4,6 +4,9 @@ import { CreateMovieDTO } from "../../domain/dtos/movies/create-movie.dto";
 import { CustomError } from "../../domain/errors/custom-errors";
 import { MovieEntity } from "../../domain/entities/movie.entity";
 import { UpdateMovieDTO } from "../../domain/dtos/movies/update-movie.dto";
+import { CreateScheduleDto } from "../../domain/dtos/movies/create-schedule.dto";
+import { MovieScheduleEntity } from "../../domain/entities/movie-schedule.entity";
+import { UpdateScheduleDTO } from "../../domain/dtos/movies/update-schedule.dto";
 
 
 export class MovieService {
@@ -28,8 +31,7 @@ export class MovieService {
             return MovieEntity.getFromObject( deletedMovie );
 
         } catch (error) {
-            console.log(error);
-            throw CustomError.internalError();
+            throw CustomError.internalError(`${ JSON.stringify( error ) }`);
         }
     }
 
@@ -38,8 +40,7 @@ export class MovieService {
             const genres = await prisma.movie_genre.findMany();
             return genres;
         } catch (error) {
-            console.log(error);
-            throw CustomError.internalError();
+            throw CustomError.internalError(`${ JSON.stringify( error ) }`);
         }
     }
 
@@ -70,8 +71,7 @@ export class MovieService {
             return MovieEntity.getFromObject( newMovie );
 
         } catch( error ) {
-            console.log(error);
-            throw CustomError.internalError();
+            throw CustomError.internalError(`${ JSON.stringify( error ) }`);
         }
     }
 
@@ -89,10 +89,135 @@ export class MovieService {
             return movie;
 
         } catch (error) {
-            console.log(error);
-            throw CustomError.internalError();
+
+            throw CustomError.internalError(`${ JSON.stringify( error ) }`);
         }
 
+    }
+
+    async createMovieSchedule( createScheduleDto: CreateScheduleDto ){
+
+        try {
+
+            let scheduleData: Prisma.scheduled_movieCreateInput = {
+                capacity: createScheduleDto.capacity,
+                start_date: new Date(createScheduleDto.start_date).toISOString(),
+                end_date: new Date(createScheduleDto.start_date).toISOString(),
+                movie: {
+                    connect: {
+                        movie_id: createScheduleDto.movie_id,
+                    }
+                }
+            }
+
+            const dbSchedule = await prisma.scheduled_movie.create({
+                data: scheduleData
+            });
+
+            if( !dbSchedule ) throw CustomError.internalError();
+
+            return MovieScheduleEntity.fromObject( dbSchedule );
+
+
+        } catch (error) {
+            console.log(`${ error }`)
+            if( error instanceof CustomError ) {
+                throw error;
+            }
+            throw CustomError.internalError(`${ JSON.stringify( error ) }`);
+
+        }
+
+    }
+
+    async getSchedules() {
+        try {
+            const schedules = await prisma.scheduled_movie.findMany();
+            return schedules.map( s => MovieScheduleEntity.fromObject( s ) );
+
+        } catch (error) {
+            console.log(`${ error }`)
+            if( error instanceof CustomError ) {
+                throw error;
+            }
+            throw CustomError.internalError(`${ JSON.stringify( error ) }`);
+        }
+    }
+
+    async getScheduleById( id: number ) {
+
+        try {
+
+            const dbSchedule = await prisma.scheduled_movie.findUnique({
+                where: {
+                    scheduled_movie_id: id,
+                }
+            });
+
+            if( !dbSchedule ) {
+                throw CustomError.notFound();
+
+            }
+
+            return MovieScheduleEntity.fromObject(dbSchedule);
+
+
+        } catch (error) {
+            console.log(`${ error }`)
+            if( error instanceof CustomError ) {
+                throw error;
+            }
+            throw CustomError.internalError(`${ JSON.stringify( error ) }`);
+        }
+
+    }
+
+    async updateSchedule( updateScheduleDto: UpdateScheduleDTO ) {
+
+        const { scheduled_movie_id } = updateScheduleDto;
+
+        if( !(await this.getScheduleById( scheduled_movie_id)) ) {
+            throw CustomError.notFound();
+        }
+
+        try {
+
+            const deletedSchedule = await prisma.scheduled_movie.update({
+                where: {
+                    scheduled_movie_id: scheduled_movie_id
+                },
+                data: updateScheduleDto.values
+            });
+
+            return MovieScheduleEntity.fromObject( deletedSchedule );
+
+        } catch (error) {
+            console.log(`${ error }`)
+            if( error instanceof CustomError ) {
+                throw error;
+            }
+            throw CustomError.internalError(`${ JSON.stringify( error ) }`);
+        }
+
+    }
+
+    async deleteSchedule( id: number ) {
+
+
+        if( !(await this.getScheduleById( id )) ) {
+            throw CustomError.notFound();
+        }
+
+        try {
+            const deletedSchedule = await prisma.scheduled_movie.delete({ where: { scheduled_movie_id: id } });
+            return MovieScheduleEntity.fromObject( deletedSchedule );
+        } catch (error) {
+            console.log(`${ error }`)
+            if( error instanceof CustomError ) {
+                throw error;
+            }
+            throw CustomError.internalError(`${ JSON.stringify( error ) }`);
+        }
     }
 
 }

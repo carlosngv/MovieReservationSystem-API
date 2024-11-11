@@ -1,6 +1,10 @@
 import express, { Router } from 'express';
 import compression from 'compression';
 
+import { NextFunction, Request, Response } from "express"
+import { CustomError } from "../domain/errors/custom-errors";
+import { APIResponse } from "./interfaces/api-response.interface";
+
 interface Options {
     port: number;
     routes: Router;
@@ -24,7 +28,20 @@ export class Server {
         this.app.use( compression() );
 
         // ? Routes
-        this.app.use('/api', this.routes)
+        this.app.use('/api', this.routes);
+
+         // ? Routes global error handler
+        this.app.use( (err: Error, req: Request, res: Response, next: NextFunction) => {
+            let response: APIResponse<undefined, string> = { error: err.message, success: false, } ;
+            if( err instanceof CustomError ){
+                response.error = err.message;
+                res.status( err.statusCode ).json( response );
+                return
+            }
+            console.log(`Routes error: ${ err }`);
+            response.error = 'Internal server error';
+            res.status( 500 ).json( response );
+        } );
 
         this.app.listen( this.port, () => {
             console.log( `Listening on port ${ this.port }` );

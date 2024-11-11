@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 export class BcryptAdapter {
 
@@ -7,8 +7,8 @@ export class BcryptAdapter {
         return bcrypt.hashSync( password, salt );
     }
 
-    static comparePasswrd( password: string, hashedPassword: string ) {
-        return bcrypt.compareSync( password, hashedPassword );
+    static comparePassword( password: string, hashed: string ) {
+        return bcrypt.compareSync( password, hashed );
     }
 
 }

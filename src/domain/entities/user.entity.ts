@@ -6,11 +6,11 @@ export class UserEntity {
         public user_id: number,
         public username: string,
         public email: string,
-        public password: string,
         public first_name: string,
         public last_name: string,
         public profile_picture: string,
         public is_verified: boolean,
+        public password?: string,
 
     ){}
 
@@ -27,7 +27,7 @@ export class UserEntity {
     static fromObject( object: { [ key: string ]: any }) {
         const { user_id, username, email, password, first_name, last_name, profile_picture, is_verified } = object;
 
-        return new UserEntity( user_id, username, email, password, first_name, last_name, profile_picture, is_verified );
+        return new UserEntity( user_id, username, email, first_name, last_name, profile_picture, is_verified, password );
     }
 
 }

@@ -11,6 +11,15 @@ export class MoviesRoutes {
 
         router.get('/', controller.getAllMovies );
         router.get('/genres', controller.getMovieGenres );
+
+        // ? Schedules
+        router.get('/schedules', controller.getMovieSchedules );
+        router.post('/schedules', controller.createMovieSchedule );
+        router.post('/schedules/new-schedule', controller.createMovieSchedule );
+        router.put('/schedules/:id', controller.updateMovieSchedule );
+        router.get('/schedules/:id', controller.getMovieScheduleById );
+        router.delete('/schedules/:id', controller.deleteMovieSchedule );
+
         router.get('/:id', controller.getMovie );
         router.post('/', controller.createMovie );
         router.put('/:id', controller.updateMovie );

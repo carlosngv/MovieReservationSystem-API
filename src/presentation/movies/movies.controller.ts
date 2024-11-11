@@ -6,41 +6,29 @@ import { APIResponse } from "../interfaces/api-response.interface";
 import { MovieEntity } from "../../domain/entities/movie.entity";
 import { UpdateMovieDTO } from "../../domain/dtos/movies/update-movie.dto";
 import Logger from "../../config/logger.config";
+import { handleError } from "../helpers/handleControllerError.helper";
+import { CreateScheduleDto } from "../../domain/dtos/movies/create-schedule.dto";
+import { MovieScheduleEntity } from "../../domain/entities/movie-schedule.entity";
+import { UpdateScheduleDTO } from "../../domain/dtos/movies/update-schedule.dto";
 
 export class MoviesController {
 
     // TODO: DI
     constructor( private movieService: MovieService ) {}
 
-    private handleError = ( res: Response, error: any ) => {
-        const response: APIResponse<null, typeof error> = {
-            data: null,
-            error: error,
-            success: false,
-        }
-        if( error instanceof CustomError ) {
-            Logger.error( JSON.stringify( response ) );
-            res.status( error.statusCode ).json( response );
-            return
-        }
-
-        res.status(500).json( response );
-    }
-
     public getMovie = ( req: Request, res: Response ) => {
         const { id } = req.params;
 
         this.movieService.getMovieById( parseInt( id ) )
             .then( m => {
-                const response: APIResponse<MovieEntity, null> = {
+                const response: APIResponse<MovieEntity, undefined> = {
                     data: m,
-                    error: null,
                     success: true,
                 }
                 Logger.info(`Movie with ID ${ id } fetched.`);
                 res.status(200).json( response );
             })
-            .catch( error => this.handleError( res, error ));
+            .catch( error => handleError( res, error ));
 
     }
 
@@ -48,30 +36,28 @@ export class MoviesController {
         this.movieService.getMovies()
             .then( movies => {
 
-                const response: APIResponse<MovieEntity[], null> = {
+                const response: APIResponse<MovieEntity[], undefined> = {
                     data: movies,
-                    error: null,
                     success: true,
                 }
                 Logger.info('Movies fetched.');
                 res.status(200).json( response );
             })
-            .catch( error =>  this.handleError( res, error ) );
+            .catch( error =>  handleError( res, error ) );
     }
 
     public getMovieGenres = ( req: Request, res: Response ) => {
         this.movieService.getMovieGenres()
             .then( moviesGenres => {
 
-                const response: APIResponse<typeof moviesGenres, null> = {
+                const response: APIResponse<typeof moviesGenres, undefined> = {
                     data: moviesGenres,
-                    error: null,
                     success: true,
                 }
 
                 res.status(200).json( response )
             })
-            .catch( error =>  this.handleError( res, error ) );
+            .catch( error =>  handleError( res, error ) );
     }
 
 
@@ -81,21 +67,20 @@ export class MoviesController {
         const [ errorMessage, createMovieDTO ] = CreateMovieDTO.create( req.body );
 
         if( errorMessage ) {
-            this.handleError( res, errorMessage );
+            handleError( res, errorMessage );
             return;
         }
 
         this.movieService.createMovie( createMovieDTO! )
             .then( createdMovie => {
-                const response: APIResponse<MovieEntity, null> = {
+                const response: APIResponse<MovieEntity, undefined> = {
                     data: createdMovie,
-                    error: null,
                     success: true,
                 }
                 Logger.info(`Movie created - ${ JSON.stringify( createdMovie ) }`);
                 res.status(201).json( response )
             } )
-            .catch( error =>  this.handleError( res, error ) );
+            .catch( error =>  handleError( res, error ) );
     }
 
     public updateMovie = ( req: Request, res: Response ) => {
@@ -104,7 +89,7 @@ export class MoviesController {
         const [ errorMessage, updateMovieDto ] = UpdateMovieDTO.create( { ...req.body , movie_id: parseInt(id) });
 
         if( errorMessage ) {
-            this.handleError( res, errorMessage );
+            handleError( res, errorMessage );
             return;
         }
 
@@ -120,7 +105,7 @@ export class MoviesController {
                 res.status(201).json( response );
 
             })
-            .catch( error => this.handleError( res, error ));
+            .catch( error => handleError( res, error ));
     }
 
     public deleteMovie = ( req: Request, res: Response ) => {
@@ -136,7 +121,99 @@ export class MoviesController {
                 Logger.info(`Movie with ID ${ id } deleted.`);
                 res.status(200).json( response );
             })
-            .catch( error => this.handleError( res, error ));
+            .catch( error => handleError( res, error ));
+    }
+
+    getMovieScheduleById = ( req: Request, res: Response ) => {
+        const { id } = req.params;
+
+        this.movieService.getScheduleById( Number( id ) )
+            .then( sch => {
+                const response: APIResponse<MovieScheduleEntity, undefined> = {
+                    data: sch,
+                    success: true,
+                }
+
+                res.status(201).json( response );
+            } )
+            .catch( error => handleError( res, error ) );
+    }
+
+    getMovieSchedules = ( req: Request, res: Response ) => {
+
+        this.movieService.getSchedules()
+            .then( sch => {
+                const response: APIResponse<MovieScheduleEntity[], undefined> = {
+                    data: sch,
+                    success: true,
+                }
+
+                res.status(201).json( response );
+            } )
+            .catch( error => handleError( res, error ) );
+
+
+    }
+
+    createMovieSchedule = ( req: Request, res: Response ) => {
+
+        const [ errorMessage, createScheduleDto ] = CreateScheduleDto.create( req.body );
+
+        if( errorMessage ) {
+            handleError( res, errorMessage );
+            return;
+        }
+
+        this.movieService.createMovieSchedule( createScheduleDto! )
+            .then( sch => {
+                const response: APIResponse<MovieScheduleEntity, undefined> = {
+                    data: sch,
+                    success: true,
+                }
+
+                res.status(201).json( response );
+            } )
+            .catch( error => handleError( res, error ) );
+
+    }
+
+    updateMovieSchedule = ( req: Request, res: Response ) => {
+        const { id } = req.params;
+        const [ errorMessage, updateScheduleDto ] = UpdateScheduleDTO.create( { ...req.body, scheduled_movie_id: Number(id) } );
+
+        if( errorMessage ) {
+            handleError( res, errorMessage );
+            return;
+        }
+
+        this.movieService.updateSchedule( updateScheduleDto! )
+            .then( sch => {
+                const response: APIResponse<MovieScheduleEntity, undefined> = {
+                    data: sch,
+                    success: true,
+                }
+
+                res.status(200).json( response );
+            })
+            .catch( error => handleError( res, error ) );
+
+    }
+
+    deleteMovieSchedule = ( req: Request, res: Response ) => {
+
+        const { id } = req.params;
+
+        this.movieService.deleteSchedule( Number(id) )
+            .then( sch => {
+                const response: APIResponse<MovieScheduleEntity, undefined> = {
+                    data: sch,
+                    success: true,
+                }
+
+                res.status(200).json( response );
+            })
+            .catch( error => handleError( res, error ) );
+
     }
 
 

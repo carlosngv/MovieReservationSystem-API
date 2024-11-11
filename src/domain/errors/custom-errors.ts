@@ -19,8 +19,8 @@ export class CustomError extends Error {
         return new CustomError( 401, message );
     }
 
-    static notFound() {
-        return new CustomError( 404, 'Not found' );
+    static notFound( message: string = 'Not found' ) {
+        return new CustomError( 404, message );
     }
 
 }
